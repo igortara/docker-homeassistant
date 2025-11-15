@@ -2,33 +2,23 @@
 
 # --- 1. Настройка системы ---
 echo "Обновление пакетов и установка необходимых зависимостей..."
+sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
 sudo apt update
-sudo apt install -y ca-certificates curl gnupg lsb-release
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# --- 2. Добавление официального GPG ключа Docker ---
-echo "Добавление GPG ключа Docker..."
-sudo mkdir -m 0755 -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+# Add the repository to Apt sources:
+sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
 
-# --- 3. Добавление репозитория Docker ---
-echo "Добавление официального репозитория Docker..."
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# --- 4. Установка Docker Engine ---
-echo "Обновление индекса пакетов и установка Docker Engine..."
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# --- 5. Запуск службы и включение автозагрузки ---
-echo "Запуск службы Docker и включение автозагрузки..."
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# --- 6. Настройка прав доступа ---
-echo "Добавление текущего пользователя ($USER) в группу docker..."
-sudo usermod -aG docker $USER
+sudo apt updatesermod -aG docker $USER
 
 # --- 7. Завершение ---
 echo "---"
