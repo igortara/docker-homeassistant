@@ -1,7 +1,3 @@
-#!/bin/bash
-
-# --- 1. Настройка системы ---
-echo "Обновление пакетов и установка необходимых зависимостей..."
 sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
 sudo apt update
 sudo apt install ca-certificates curl
@@ -18,10 +14,8 @@ Components: stable
 Signed-By: /etc/apt/keyrings/docker.asc
 EOF
 
-sudo apt updatesermod -aG docker $USER
-
-# --- 7. Завершение ---
-echo "---"
-echo "✅ Установка Docker завершена!"
-echo "⚠️ ВАЖНО: Для применения изменений прав доступа (чтобы использовать 'docker' без 'sudo'), пожалуйста, выйдите и снова войдите в систему."
-echo "Проверьте установку после перезапуска командой: docker run hello-world"
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl status docker
+sudo systemctl start docker
+sudo docker run hello-world
